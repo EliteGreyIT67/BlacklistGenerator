@@ -4,12 +4,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
-import AnimalRescueGenerator from "@/pages/animal-rescue-generator";
+import BlacklistGenerator from "@/pages/blacklist-generator";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={AnimalRescueGenerator} />
+      <Route path="/" component={BlacklistGenerator} />
       <Route component={NotFound} />
     </Switch>
   );

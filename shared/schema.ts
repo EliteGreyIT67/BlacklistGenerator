@@ -1,67 +1,69 @@
 import { z } from "zod";
 
-export const animalSchema = z.object({
-  id: z.string(),
-  name: z.string().min(1, "Animal name is required"),
-  species: z.string().optional(),
-  breed: z.string().optional(),
-  age: z.string().optional(),
-  color: z.string().optional(),
-  gender: z.enum(["male", "female", "unknown"]).optional(),
-  microchipId: z.string().optional(),
-  medicalConditions: z.string().optional(),
-  specialNeeds: z.string().optional(),
-  photos: z.array(z.string()).default([]),
-});
-
-export const contactPersonSchema = z.object({
+export const individualSchema = z.object({
   id: z.string(),
   name: z.string().min(1, "Name is required"),
-  role: z.string().optional(),
+  aliases: z.array(z.string()).default([]),
+  dob: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
   address: z.string().optional(),
   socialMedia: z.array(z.string()).default([]),
+  role: z.string().optional(), // Director, Volunteer, Foster, etc.
+  licenseNumber: z.string().optional(),
 });
 
-export const rescueOrganizationSchema = z.object({
+export const organizationSchema = z.object({
   id: z.string(),
   name: z.string().min(1, "Organization name is required"),
+  aliases: z.array(z.string()).default([]),
   registration: z.string().optional(),
   website: z.string().url().optional().or(z.literal("")),
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
   address: z.string().optional(),
   socialMedia: z.array(z.string()).default([]),
-  capacity: z.string().optional(),
-  specializations: z.array(z.string()).default([]),
+  operatingStatus: z.enum(["active", "suspended", "closed", "under_investigation"]).default("active"),
+  licensingInfo: z.string().optional(),
 });
 
-export const rescuePostSchema = z.object({
-  title: z.string().min(1, "Post title is required"),
-  urgency: z.enum(["low", "medium", "high", "critical"]).default("medium"),
-  postType: z.enum(["adoption", "foster", "lost", "found", "emergency", "transport", "volunteer"]).default("adoption"),
-  description: z.string().optional(),
-  animals: z.array(animalSchema).default([]),
-  contactPersons: z.array(contactPersonSchema).default([]),
-  organizations: z.array(rescueOrganizationSchema).default([]),
+export const violationSchema = z.object({
+  id: z.string(),
+  type: z.enum(["neglect", "abuse", "fraud", "unlicensed_operation", "false_advertising", "poor_conditions", "other"]),
+  description: z.string().min(1, "Violation description is required"),
+  date: z.string().optional(),
   location: z.string().optional(),
-  deadline: z.string().optional(),
-  requirements: z.string().optional(),
-  additionalInfo: z.string().optional(),
+  evidence: z.array(z.string()).default([]), // URLs to evidence
+  reportedBy: z.string().optional(),
+  officialAction: z.string().optional(),
+});
+
+export const blacklistPostSchema = z.object({
+  alertTitle: z.string().min(1, "Alert title is required"),
+  severity: z.enum(["low", "medium", "high", "critical"]).default("medium"),
+  status: z.enum(["investigating", "confirmed", "resolved", "ongoing"]).default("investigating"),
+  dateReported: z.string().optional(),
+  location: z.string().optional(),
+  briefDescription: z.string().optional(),
+  individuals: z.array(individualSchema).default([]),
+  organizations: z.array(organizationSchema).default([]),
+  violations: z.array(violationSchema).default([]),
+  animalWelfareImpact: z.string().optional(),
+  recommendedActions: z.string().optional(),
+  warningStatement: z.string().optional(),
   hashtags: z.array(z.string()).default([]),
 });
 
 export const templateSchema = z.object({
   id: z.string(),
   name: z.string().min(1, "Template name is required"),
-  data: rescuePostSchema,
+  data: blacklistPostSchema,
   createdAt: z.string(),
   updatedAt: z.string(),
 });
 
-export type Animal = z.infer<typeof animalSchema>;
-export type ContactPerson = z.infer<typeof contactPersonSchema>;
-export type RescueOrganization = z.infer<typeof rescueOrganizationSchema>;
-export type RescuePost = z.infer<typeof rescuePostSchema>;
+export type Individual = z.infer<typeof individualSchema>;
+export type Organization = z.infer<typeof organizationSchema>;
+export type Violation = z.infer<typeof violationSchema>;
+export type BlacklistPost = z.infer<typeof blacklistPostSchema>;
 export type Template = z.infer<typeof templateSchema>;

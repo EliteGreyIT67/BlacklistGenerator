@@ -1,8 +1,8 @@
-# Animal Rescue Post Generator Application
+# Animal Rescue Blacklist Generator Application
 
 ## Overview
 
-This is a full-stack TypeScript application built with React and Express that serves as a post generator for animal rescue organizations. The application allows users to create, manage, and format rescue posts with detailed information about animals needing homes, foster care, or emergency assistance. It features a modern UI built with shadcn/ui components and supports template functionality for reusable post formats.
+This is a full-stack TypeScript application built with React and Express that serves as a blacklist generator for documenting issues with animal rescue organizations and individuals. The application allows users to create, manage, and format warning posts with detailed information about problematic rescue organizations, individuals, violations, and animal welfare concerns. It features a modern UI built with shadcn/ui components and supports template functionality for reusable alert formats.
 
 ## System Architecture
 
@@ -31,13 +31,14 @@ This is a full-stack TypeScript application built with React and Express that se
 ## Key Components
 
 ### Core Features
-1. **Rescue Post Generator**: Main form interface for creating animal rescue posts
-2. **Template Management**: Save, load, and manage reusable rescue post templates
-3. **Animal Information Management**: Detailed forms for capturing animal details (species, breed, medical needs, etc.)
-4. **Contact & Organization Management**: Track rescue contacts and organizations involved
-5. **Multi-Post Type Support**: Support for adoption, foster, lost/found, emergency, transport, and volunteer posts
-6. **Priority & Urgency Levels**: Categorize posts by urgency (low, medium, high, critical)
-7. **Export Functionality**: Format and copy rescue posts for social media sharing
+1. **Blacklist Alert Generator**: Main form interface for creating warning alerts about problematic rescue organizations
+2. **Template Management**: Save, load, and manage reusable blacklist alert templates
+3. **Individual Tracking**: Detailed forms for flagged individuals (names, aliases, roles, licensing info)
+4. **Organization Monitoring**: Track problematic rescue organizations with operating status and violations
+5. **Violation Documentation**: Record specific violations (neglect, abuse, fraud, unlicensed operations, poor conditions)
+6. **Severity & Status Levels**: Categorize alerts by risk level (low, medium, high, critical) and investigation status
+7. **Evidence Management**: Link to supporting evidence for documented violations
+8. **Export Functionality**: Format and copy blacklist alerts for community sharing
 
 ### Frontend Components
 - **Form Management**: React Hook Form with Zod schema validation
@@ -54,11 +55,11 @@ This is a full-stack TypeScript application built with React and Express that se
 ## Data Flow
 
 ### Client-Side Data Flow
-1. User interacts with form components (animals, contact persons, rescue organizations, post details)
+1. User interacts with form components (flagged individuals, organizations, violations, alert details)
 2. React Hook Form manages form state with Zod validation
 3. Data is stored locally using localStorage hooks for persistence
-4. Templates can be saved/loaded for reusable rescue post formats
-5. Final rescue post is formatted and copied to clipboard for social media sharing
+4. Templates can be saved/loaded for reusable blacklist alert formats
+5. Final blacklist alert is formatted and copied to clipboard for community sharing
 
 ### Server-Side Data Flow
 1. Express server handles API requests under `/api` prefix
@@ -120,6 +121,7 @@ This is a full-stack TypeScript application built with React and Express that se
 ## Changelog
 - July 05, 2025. Initial setup as Blacklist Post Generator
 - July 05, 2025. Refactored application for Animal Rescue Organizations with new schema, components, and formatting
+- July 05, 2025. Refactored back to blacklisting animal rescue organizations - includes violation tracking, individual/organization monitoring, evidence management, and severity-based alerts
 
 ## User Preferences
 
