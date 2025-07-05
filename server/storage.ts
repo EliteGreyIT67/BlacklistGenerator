@@ -1,38 +1,62 @@
-import { users, type User, type InsertUser } from "@shared/schema";
+import { type Template } from "@shared/schema";
 
-// modify the interface with any CRUD methods
-// you might need
+// Template storage interface for animal rescue posts
 
 export interface IStorage {
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getTemplate(id: string): Promise<Template | undefined>;
+  getTemplatesByUser(userId: string): Promise<Template[]>;
+  createTemplate(template: Omit<Template, 'id' | 'createdAt' | 'updatedAt'>): Promise<Template>;
+  updateTemplate(id: string, template: Partial<Template>): Promise<Template | undefined>;
+  deleteTemplate(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  currentId: number;
+  private templates: Map<string, Template>;
+  private currentId: number;
 
   constructor() {
-    this.users = new Map();
+    this.templates = new Map();
     this.currentId = 1;
   }
 
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+  async getTemplate(id: string): Promise<Template | undefined> {
+    return this.templates.get(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async getTemplatesByUser(userId: string): Promise<Template[]> {
+    // For now, return all templates since we're not implementing user authentication
+    return Array.from(this.templates.values());
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async createTemplate(templateData: Omit<Template, 'id' | 'createdAt' | 'updatedAt'>): Promise<Template> {
+    const id = `template_${this.currentId++}`;
+    const now = new Date().toISOString();
+    const template: Template = {
+      ...templateData,
+      id,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.templates.set(id, template);
+    return template;
+  }
+
+  async updateTemplate(id: string, updates: Partial<Template>): Promise<Template | undefined> {
+    const existing = this.templates.get(id);
+    if (!existing) return undefined;
+
+    const updated: Template = {
+      ...existing,
+      ...updates,
+      id, // Ensure ID doesn't change
+      updatedAt: new Date().toISOString(),
+    };
+    this.templates.set(id, updated);
+    return updated;
+  }
+
+  async deleteTemplate(id: string): Promise<boolean> {
+    return this.templates.delete(id);
   }
 }
 
