@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { pgTable, text, timestamp, serial } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
 
 export const individualSchema = z.object({
   id: z.string(),
@@ -62,8 +64,28 @@ export const templateSchema = z.object({
   updatedAt: z.string(),
 });
 
+// Drizzle database tables
+export const templates = pgTable("templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  data: text("data").notNull(), // JSON string of BlacklistPost
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Zod schemas and types
 export type Individual = z.infer<typeof individualSchema>;
 export type Organization = z.infer<typeof organizationSchema>;
 export type Violation = z.infer<typeof violationSchema>;
 export type BlacklistPost = z.infer<typeof blacklistPostSchema>;
 export type Template = z.infer<typeof templateSchema>;
+
+// Drizzle insert schemas
+export const insertTemplateSchema = createInsertSchema(templates).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
+export type SelectTemplate = typeof templates.$inferSelect;

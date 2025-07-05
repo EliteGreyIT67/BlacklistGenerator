@@ -10,8 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { useLocalStorage } from "@/hooks/use-local-storage";
 import { formatBlacklistPost, formatDateForDisplay } from "@/lib/formatters";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import {
   Shield,
   Users,
@@ -63,7 +64,7 @@ const defaultValues: BlacklistPost = {
 
 export default function BlacklistGenerator() {
   const { toast } = useToast();
-  const [templates, setTemplates] = useLocalStorage<Template[]>("blacklist-templates", []);
+  const queryClient = useQueryClient();
   const [expandedSections, setExpandedSections] = useState({
     mainInfo: true,
     individuals: true,
@@ -74,6 +75,70 @@ export default function BlacklistGenerator() {
   const [newHashtag, setNewHashtag] = useState("");
   const [templateName, setTemplateName] = useState("");
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+
+  // Fetch templates from database
+  const { data: templates = [], isLoading: isLoadingTemplates } = useQuery({
+    queryKey: ["/api/templates"],
+    queryFn: async () => {
+      const response = await fetch("/api/templates");
+      if (!response.ok) throw new Error("Failed to fetch templates");
+      return await response.json() as Template[];
+    },
+  });
+
+  // Create template mutation
+  const createTemplateMutation = useMutation({
+    mutationFn: async (templateData: { name: string; data: string }) => {
+      const response = await fetch("/api/templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(templateData),
+      });
+      if (!response.ok) throw new Error("Failed to create template");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      setTemplateName("");
+      setShowSaveDialog(false);
+      toast({
+        title: "Success",
+        description: "Template saved successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save template",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete template mutation
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (templateId: string) => {
+      const response = await fetch(`/api/templates/${templateId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete template");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      toast({
+        title: "Success",
+        description: "Template deleted successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete template",
+        variant: "destructive",
+      });
+    },
+  });
 
   const form = useForm<BlacklistPost>({
     resolver: zodResolver(blacklistPostSchema),
@@ -295,21 +360,9 @@ export default function BlacklistGenerator() {
       return;
     }
 
-    const newTemplate: Template = {
-      id: nanoid(),
+    createTemplateMutation.mutate({
       name: templateName,
-      data: watchedData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    setTemplates(prev => [...prev, newTemplate]);
-    setTemplateName("");
-    setShowSaveDialog(false);
-    
-    toast({
-      title: "Success",
-      description: "Template saved successfully!",
+      data: JSON.stringify(watchedData),
     });
   };
 
@@ -322,11 +375,7 @@ export default function BlacklistGenerator() {
   };
 
   const deleteTemplate = (templateId: string) => {
-    setTemplates(prev => prev.filter(t => t.id !== templateId));
-    toast({
-      title: "Success",
-      description: "Template deleted successfully!",
-    });
+    deleteTemplateMutation.mutate(templateId);
   };
 
   const renderPreview = () => {

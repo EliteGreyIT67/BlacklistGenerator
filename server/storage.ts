@@ -1,63 +1,89 @@
-import { type Template } from "@shared/schema";
+import { templates, type Template, type InsertTemplate, type SelectTemplate } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
-// Template storage interface for animal rescue posts
+// Template storage interface for blacklist posts
 
 export interface IStorage {
-  getTemplate(id: string): Promise<Template | undefined>;
-  getTemplatesByUser(userId: string): Promise<Template[]>;
-  createTemplate(template: Omit<Template, 'id' | 'createdAt' | 'updatedAt'>): Promise<Template>;
-  updateTemplate(id: string, template: Partial<Template>): Promise<Template | undefined>;
-  deleteTemplate(id: string): Promise<boolean>;
+  getTemplate(id: number): Promise<Template | undefined>;
+  getAllTemplates(): Promise<Template[]>;
+  createTemplate(template: InsertTemplate): Promise<Template>;
+  updateTemplate(id: number, template: Partial<InsertTemplate>): Promise<Template | undefined>;
+  deleteTemplate(id: number): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private templates: Map<string, Template>;
-  private currentId: number;
+export class DatabaseStorage implements IStorage {
+  async getTemplate(id: number): Promise<Template | undefined> {
+    const [template] = await db.select().from(templates).where(eq(templates.id, id));
+    if (!template) return undefined;
 
-  constructor() {
-    this.templates = new Map();
-    this.currentId = 1;
-  }
-
-  async getTemplate(id: string): Promise<Template | undefined> {
-    return this.templates.get(id);
-  }
-
-  async getTemplatesByUser(userId: string): Promise<Template[]> {
-    // For now, return all templates since we're not implementing user authentication
-    return Array.from(this.templates.values());
-  }
-
-  async createTemplate(templateData: Omit<Template, 'id' | 'createdAt' | 'updatedAt'>): Promise<Template> {
-    const id = `template_${this.currentId++}`;
-    const now = new Date().toISOString();
-    const template: Template = {
-      ...templateData,
-      id,
-      createdAt: now,
-      updatedAt: now,
+    return {
+      id: template.id.toString(),
+      name: template.name,
+      data: JSON.parse(template.data),
+      createdAt: template.createdAt.toISOString(),
+      updatedAt: template.updatedAt.toISOString(),
     };
-    this.templates.set(id, template);
-    return template;
   }
 
-  async updateTemplate(id: string, updates: Partial<Template>): Promise<Template | undefined> {
-    const existing = this.templates.get(id);
-    if (!existing) return undefined;
+  async getAllTemplates(): Promise<Template[]> {
+    const dbTemplates = await db.select().from(templates);
+    return dbTemplates.map(template => ({
+      id: template.id.toString(),
+      name: template.name,
+      data: JSON.parse(template.data),
+      createdAt: template.createdAt.toISOString(),
+      updatedAt: template.updatedAt.toISOString(),
+    }));
+  }
 
-    const updated: Template = {
-      ...existing,
-      ...updates,
-      id, // Ensure ID doesn't change
-      updatedAt: new Date().toISOString(),
+  async createTemplate(templateData: InsertTemplate): Promise<Template> {
+    const [template] = await db
+      .insert(templates)
+      .values({
+        name: templateData.name,
+        data: typeof templateData.data === 'string' ? templateData.data : JSON.stringify(templateData.data),
+      })
+      .returning();
+
+    return {
+      id: template.id.toString(),
+      name: template.name,
+      data: JSON.parse(template.data),
+      createdAt: template.createdAt.toISOString(),
+      updatedAt: template.updatedAt.toISOString(),
     };
-    this.templates.set(id, updated);
-    return updated;
   }
 
-  async deleteTemplate(id: string): Promise<boolean> {
-    return this.templates.delete(id);
+  async updateTemplate(id: number, updates: Partial<InsertTemplate>): Promise<Template | undefined> {
+    const updateData: any = {};
+    if (updates.name) updateData.name = updates.name;
+    if (updates.data) {
+      updateData.data = typeof updates.data === 'string' ? updates.data : JSON.stringify(updates.data);
+    }
+    updateData.updatedAt = new Date();
+
+    const [template] = await db
+      .update(templates)
+      .set(updateData)
+      .where(eq(templates.id, id))
+      .returning();
+
+    if (!template) return undefined;
+
+    return {
+      id: template.id.toString(),
+      name: template.name,
+      data: JSON.parse(template.data),
+      createdAt: template.createdAt.toISOString(),
+      updatedAt: template.updatedAt.toISOString(),
+    };
+  }
+
+  async deleteTemplate(id: number): Promise<boolean> {
+    const result = await db.delete(templates).where(eq(templates.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
