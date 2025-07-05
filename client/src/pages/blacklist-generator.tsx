@@ -351,6 +351,7 @@ export default function BlacklistGenerator() {
                          data.severity === "high" ? "High Risk" : "CRITICAL WARNING"}</p>
             <p>Status: {data.status === "investigating" ? "Under Investigation" :
                        data.status === "confirmed" ? "Confirmed Issues" :
+                       data.status === "blacklisted" ? "Blacklisted" :
                        data.status === "resolved" ? "Issues Resolved" : "Ongoing Concerns"}</p>
             {data.location && <p>Location: {data.location}</p>}
             {data.dateReported && <p>Date Reported: {formatDateForDisplay(data.dateReported)}</p>}
@@ -632,6 +633,7 @@ export default function BlacklistGenerator() {
                           <SelectContent>
                             <SelectItem value="investigating">Under Investigation</SelectItem>
                             <SelectItem value="confirmed">Confirmed Issues</SelectItem>
+                            <SelectItem value="blacklisted">Blacklisted</SelectItem>
                             <SelectItem value="resolved">Issues Resolved</SelectItem>
                             <SelectItem value="ongoing">Ongoing Concerns</SelectItem>
                           </SelectContent>

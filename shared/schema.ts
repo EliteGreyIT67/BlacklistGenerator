@@ -41,7 +41,7 @@ export const violationSchema = z.object({
 export const blacklistPostSchema = z.object({
   alertTitle: z.string().min(1, "Alert title is required"),
   severity: z.enum(["low", "medium", "high", "critical"]).default("medium"),
-  status: z.enum(["investigating", "confirmed", "resolved", "ongoing"]).default("investigating"),
+  status: z.enum(["investigating", "confirmed", "blacklisted", "resolved", "ongoing"]).default("investigating"),
   dateReported: z.string().optional(),
   location: z.string().optional(),
   briefDescription: z.string().optional(),
