@@ -10,6 +10,8 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
+import { stringify } from 'csv-stringify';
+import { parse } from 'csv-parse';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Template routes
@@ -65,7 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updates = insertTemplateSchema.partial().parse(req.body);
       const template = await storage.updateTemplate(id, updates);
-      
+
       if (!template) {
         return res.status(404).json({ error: "Template not found" });
       }
@@ -107,6 +109,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4', 'audio/mpeg'];
       cb(null, allowedTypes.includes(file.mimetype));
     }
+  });
+
+  // Export incidents as CSV
+  app.get('/api/incidents/export', async (req, res) => {
+    try {
+      const incidents = await storage.getAllIncidents();
+
+      const records = incidents.map((incident) => ({
+        ID: incident.id,
+        Title: incident.title,
+        Severity: incident.severity,
+        Status: incident.status,
+        CreatedAt: incident.createdAt.toISOString(),
+      }));
+
+      stringify(records, { header: true }, (err, output) => {
+        if (err) {
+          res.status(500).json({ error: 'Error generating CSV' });
+        } else {
+          res.attachment('incidents.csv');
+          res.send(output);
+        }
+      });
+    } catch (error) {
+      console.error('Error exporting incidents:', error);
+      res.status(500).json({ error: 'Failed to export incidents' });
+    }
+  });
+
+  // Import incidents from CSV
+  app.post('/api/incidents/import', upload.single('file'), (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    parse(req.file.buffer, { columns: true }, async (err, records) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error parsing CSV' });
+      }
+
+      try {
+        for (const record of records) {
+          const incidentData = {
+            title: record.Title,
+            severity: record.Severity,
+            status: record.Status,
+            createdAt: new Date(record.CreatedAt),
+            data: {}, // Add additional fields as necessary
+          };
+
+          await storage.createIncident(incidentData);
+        }
+
+        res.status(201).json({ message: 'Incidents imported successfully' });
+      } catch (error) {
+        console.error('Error importing incidents:', error);
+        res.status(500).json({ error: 'Failed to import incidents' });
+      }
+    });
   });
 
   // Incident routes
@@ -162,7 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updates = insertIncidentSchema.partial().parse(req.body);
       const incident = await storage.updateIncident(id, updates);
-      
+
       if (!incident) {
         return res.status(404).json({ error: "Incident not found" });
       }
