@@ -73,7 +73,23 @@
   button {
     min-width: 44px;
     height: 44px;
+    font-size: 16px; /* Ensure text is readable */
   }
+
+  .container {
+    padding: 10px;
+  }
+  
+  .card {
+    margin: 10px 0; /* Added margin for spacing between cards on mobile screens */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  }
+
+  /* Improve sidebar experience on mobile */
+  .sidebar {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+}
 
   .container {
     padding: 10px;
