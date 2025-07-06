@@ -386,6 +386,19 @@ export default function IncidentDetail() {
     {entry.link.text}
   </a>
 )}
+
+{entry.media && entry.media.type === "video" && (
+  <video controls className="my-4">
+    <source src={entry.media.url} type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+)}
+
+{entry.link && (
+  <a href={entry.link.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+    {entry.link.text}
+  </a>
+)}
                       </div>
                     </div>
                   </CardContent>

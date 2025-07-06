@@ -57,3 +57,25 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    position: fixed;
+    height: auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background-color: var(--background);
+  }
+
+  button {
+    min-width: 44px;
+    height: 44px;
+  }
+
+  .container {
+    padding: 10px;
+  }
+}
