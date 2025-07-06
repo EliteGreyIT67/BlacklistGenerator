@@ -71,7 +71,9 @@ export default function IncidentDetail() {
       title: "Initial Report Received",
       description: "Anonymous tip received about overcrowding at Sunshine Rescue",
       type: "report",
-      severity: "medium"
+      severity: "medium",
+      media: { type: "image", url: "/path/to/image.jpg" },
+      link: { url: "https://external-article.com", text: "Read more" }
     },
     {
       id: 2,
@@ -367,6 +369,23 @@ export default function IncidentDetail() {
                           <span className="text-sm text-gray-500">{entry.date}</span>
                         </div>
                         <p className="text-gray-700">{entry.description}</p>
+
+{entry.media && entry.media.type === "image" && (
+  <img src={entry.media.url} alt="Timeline media" className="my-4" />
+)}
+
+{entry.media && entry.media.type === "video" && (
+  <video controls className="my-4">
+    <source src={entry.media.url} type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+)}
+
+{entry.link && (
+  <a href={entry.link.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+    {entry.link.text}
+  </a>
+)}
                       </div>
                     </div>
                   </CardContent>
